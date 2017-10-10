@@ -1,0 +1,4 @@
+var trelloApiKey = "";
+var trelloApiToken = "";
+exports.trelloApiKey = trelloApiKey;
+exports.trelloApiToken = trelloApiToken;
