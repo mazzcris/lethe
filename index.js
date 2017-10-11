@@ -68,6 +68,19 @@ function prettyDate (date) {
   return date.substr(8, 2) + months[parseInt(date.substr(5, 2) - 1)];
 }
 
+function getDateWithoutTime (dateTimeStr) {
+  var dateTime = new Date(dateTimeStr)
+  var year = dateTime.getFullYear()+"";
+  var month = (dateTime.getMonth()+1)+"";
+  var day = dateTime.getDate();
+  if(day < 10) {
+    day = "0"+day
+  } else {
+    day = day + ""
+  }
+  return year + "-" + month + "-" + day;
+}
+
 function addEmptyLineIfNewDay (prevDate, currDate) {
   if (prevDate.substr(8, 2) != currDate.substr(8, 2)) {
     console.log();
@@ -85,6 +98,9 @@ function printGithubEvents () {
     protocol: "https"
   });
 
+  var pushEvents = {}
+  var allEvents = []
+
   github.authenticate({
     type: "basic",
     username: githubUsername,
@@ -101,7 +117,7 @@ function printGithubEvents () {
       if (err.code == 401) {
         printError('Wrong username or password for github account');
         return;
-      } 
+      }
 
       printError(error.message);
       return;
@@ -109,24 +125,75 @@ function printGithubEvents () {
 
     for (var i = 0; i < res.data.length; i++) {
       var item = res.data[i];
-      if (item.type == "PushEvent") {
-        printPushEvent(item);
-      }
-      if (item.type == "PullRequestEvent") {
-        printPullRequestEvent(item);
+      switch(item.type) {
+        case "PushEvent": {
+          aggregatePushEvent(item);
+          break;
+        }
+        case "PullRequestEvent": {
+          aggregatePullEvent(item)
+          break;
+        }
+        default: //console.warn('Unimplemented event type: ' + item.type)
       }
     }
+
+    var groupedPushEvents = Object.keys(pushEvents)
+    groupedPushEvents.forEach(function(eventKey) {
+      allEvents.push(pushEvents[eventKey])
+    })
+
+    allEvents.sort(function(eventA, eventB) {
+      return eventB.event.id - eventA.event.id
+    })
+
+    allEvents.forEach(function(item) {
+      switch(item.event.type) {
+        case "PushEvent": {
+          printPushEvent(item);
+          break;
+        }
+        case "PullRequestEvent": {
+          printPullRequestEvent(item.event)
+          break;
+        }
+      }
+    })
   });
+
+  function aggregatePullEvent(event) {
+    allEvents.push({ event: event })
+  }
+
+  function aggregatePushEvent(event) {
+    var eventCreatedAt = getDateWithoutTime(event.created_at);
+    var eventRepoId = event.repo.id;
+    var eventActorId = event.actor.id;
+    var eventRef = event.payload.ref.toUpperCase();
+
+    var eventKey = eventCreatedAt + '::' + eventRepoId + '::' + eventActorId + '::' + eventRef;
+
+    var payloadSize = event.payload.size;
+
+    var previousEvent = pushEvents[eventKey]
+
+    if(previousEvent) {
+      payloadSize = payloadSize + previousEvent.count
+    }
+
+    pushEvents[eventKey] = { event: event, count: payloadSize }
+  }
 }
 
 function printError(error) {
   console.error('ERROR:',error);
 }
 
-function printPushEvent (item) {
+function printPushEvent (groupedEvent) {
+  var item = groupedEvent.event;
   console.log(prettyDate(item.created_at) + ": In " + item.repo.name.toUpperCase() +
     ", " + item.actor.display_login.toUpperCase() +
-    " pushed " + item.payload.size + " commits to " + item.payload.ref.toUpperCase());
+    " pushed " + groupedEvent.count + " commits to " + item.payload.ref.toUpperCase());
 }
 
 function printPullRequestEvent (item) {
