@@ -95,6 +95,18 @@ function printGithubEvents () {
     page: 0,
     per_page: 50
   }, function (err, res) {
+
+    if (err) {
+
+      if (err.code == 401) {
+        printError('Wrong username or password for github account');
+        return;
+      } 
+
+      printError(error.message);
+      return;
+    }
+
     for (var i = 0; i < res.data.length; i++) {
       var item = res.data[i];
       if (item.type == "PushEvent") {
@@ -105,6 +117,10 @@ function printGithubEvents () {
       }
     }
   });
+}
+
+function printError(error) {
+  console.error('ERROR:',error);
 }
 
 function printPushEvent (item) {
