@@ -6,6 +6,10 @@ var prettyDate = require('./pretty_date');
 var gcal = require('./gcal/plugin');
 
 
+var prettyDate = require('./pretty_date');
+var gcal = require('./gcal/plugin');
+
+
 if (!params.trelloApiToken) {
   console.log(
     "You need to set your trelloApiToken in parameters.js ",
@@ -15,40 +19,6 @@ if (!params.trelloApiToken) {
   return;
 }
 
-<<<<<<< 3278b8f505b45e8420d22762161d3bd26316b7a4
-var Trello = require("node-trello");
-var t = new Trello(params.trelloApiKey, params.trelloApiToken);
-
-function getTrelloItems (cb) {
-  var trelloEvents = [];
-
-  t.get("/1/members/me/actions", function (err, data) {
-    if (err) console.log(err);
-    for (var i = 0; i < data.length; i++) {
-      var item = data[i];
-      if (item.data.listAfter !== undefined) {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'cardMoved', event: item});
-      }
-      if (item.type == "addMemberToCard") {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'memberAdded', event: item});
-      }
-      if (item.type == "removeMemberFromCard") {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'memberRemoved', event: item});
-      }
-    }
-    cb(trelloEvents);
-  });
-}
-=======
->>>>>>> Move trello-related functions to separate file
-
-function prettyDate (date) {
-  var months = ["January", "February", "March", "April", "May", "Jun",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  return months[parseInt(date.substr(5, 2) - 1)].toUpperCase() + " " + date.substr(8, 2);
-}
 
 function printPushEvent (groupedEvent) {
   var item = groupedEvent;
@@ -91,7 +61,13 @@ function init () {
 
     Github.getItems(function (githubItems) {
       globalItems = globalItems.concat(githubItems)
-      printAllItems(globalItems);
+
+      getGoogleCalendarItems(function (calendarItems) {
+        globalItems = globalItems.concat(calendarItems)
+
+        printAllItems(globalItems);
+      });
+
     });
   });
 }
@@ -101,7 +77,6 @@ function cleanDate (d) {
 }
 
 function printAllItems (items) {
-
   items.sort(function (itemA, itemB) {
     if (cleanDate(itemA.date) > cleanDate(itemB.date)) {
       return -1
@@ -145,6 +120,9 @@ function printAllItems (items) {
         }
         default: //console.warn('Unimplemented event type: ' + item.type)
       }
+    }
+    if (item.source === "gcalendar") {
+      printGoogleCalendarEvent(item.event)
     }
   });
 }

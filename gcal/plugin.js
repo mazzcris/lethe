@@ -11,7 +11,7 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH || process.env.USERPRO
 var TOKEN_PATH = TOKEN_DIR + 'gcal-lethe.json';
 
 
-function run(baseDir)
+function run(baseDir, cb)
 {
   if (baseDir) {
     TOKEN_DIR = baseDir + '/.credentials/';
@@ -26,7 +26,9 @@ function run(baseDir)
     }
     // Authorize a client with the loaded credentials, then call the
     // Google Calendar API.
-    authorize(JSON.parse(content), listLastTwoWeeksEvents);
+    authorize(JSON.parse(content), function(auth) {
+      listLastTwoWeeksEvents(auth, cb)
+    });
   });
 }
 
@@ -109,13 +111,14 @@ function storeToken(token) {
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
-function listLastTwoWeeksEvents(auth) {
+function listLastTwoWeeksEvents(auth, cb) {
+
   var calendar = google.calendar('v3');
   var firstEventDate = new Date();
   firstEventDate.setDate(firstEventDate.getDate() - 15);
   calendar.events.list({
     auth: auth,
-    calendarId: 'primary',
+    calendarId: 'primary',  
     timeMin: firstEventDate.toISOString(),
     timeMax: (new Date()).toISOString(),
     maxResults: 20,
@@ -127,15 +130,16 @@ function listLastTwoWeeksEvents(auth) {
       return;
     }
     var events = response.items;
-    if (events.length == 0) {
-      console.log('No upcoming events found in Google Calendar.');
-    } else {
+    var gcalEvents = [];
+    if (events.length) {
       for (var i = 0; i < events.length; i++) {
         var event = events[i];
         var start = event.start.dateTime || event.start.date;
-        console.log(prettyDate(start)+":", event.summary);
+        gcalEvents.push({source: 'gcalendar', date: start, type: 'event', event: event});
       }
     }
+    
+    cb(gcalEvents);
   });
 }
 
