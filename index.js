@@ -8,7 +8,7 @@ if (!params.trelloApiToken) {
   console.log(
     "You need to set your trelloApiToken in parameters.js ",
     "Please visit the following link to get your token: " +
-    "https://trello.com/1/connect?key=" + params.trelloApiKey + "&expiration=never&name=Wormhole&response_type=token"
+    "https://trello.com/1/connect?key=" + params.trelloApiKey + "&expiration=never&name=Lethe&response_type=token"
   );
   return;
 }

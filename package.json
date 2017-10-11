@@ -1,5 +1,5 @@
 {
-  "name": "wormhole",
+  "name": "lethe",
   "version": "0.0.1",
   "dependencies": {
     "bluebird": "^3.5.1",
