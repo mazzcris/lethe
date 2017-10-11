@@ -125,9 +125,9 @@ function getCredentials () {
 
   var readlineSync = require('readline-sync');
 
-  githubUsername = readlineSync.question('Github Username ');
-  githubPassword = readlineSync.question('Github Password ', {
-    hideEchoBack: true // The typed text on screen is hidden by `*` (default).
+  githubUsername = readlineSync.question('Github Username: ');
+  githubPassword = readlineSync.question('Github Password: ', {
+    hideEchoBack: true
   });
   printTrelloEvents();
   console.log();
