@@ -1,4 +1,8 @@
 var params = require('./parameters');
+var GitHubApi = require("github");
+var Promise = require('bluebird');
+var githubUsername = null;
+var githubPassword = null;
 
 if (!params.trelloApiToken) {
   console.log(
@@ -71,10 +75,65 @@ function addEmptyLineIfNewDay (prevDate, currDate) {
 }
 
 
-function printGithubEvents(){
-  console.log("TBI");
+function printGithubEvents () {
+
+  var github = new GitHubApi({
+    debug: false,
+    Promise: Promise,
+    timeout: 5000,
+    host: 'api.github.com', // should be api.github.com for GitHub
+    protocol: "https"
+  });
+
+  github.authenticate({
+    type: "basic",
+    username: githubUsername,
+    password: githubPassword
+  });
+  github.activity.getEventsForUser({
+    username: "mazzcris",
+    page: 0,
+    per_page: 50
+  }, function (err, res) {
+    for (var i = 0; i < res.data.length; i++) {
+      var item = res.data[i];
+      if (item.type == "PushEvent") {
+        printPushEvent(item);
+      }
+      if (item.type == "PullRequestEvent") {
+        printPullRequestEvent(item);
+      }
+    }
+  });
+}
+
+function printPushEvent (item) {
+  console.log(prettyDate(item.created_at) + ": In " + item.repo.name.toUpperCase() +
+    ", " + item.actor.display_login.toUpperCase() +
+    " pushed " + item.payload.size + " commits to " + item.payload.ref.toUpperCase());
+}
+
+function printPullRequestEvent (item) {
+  if (item.payload.action == "closed" && item.payload.pull_request.merged == true) {
+    console.log(prettyDate(item.payload.pull_request.merged_at) + ": In " + item.repo.name.toUpperCase() +
+      ", " + item.actor.display_login.toUpperCase() +
+      " merged pull-request  " + item.payload.pull_request.title.toUpperCase());
+  }
+}
+
+function getCredentials () {
+
+  var readlineSync = require('readline-sync');
+
+  githubUsername = readlineSync.question('Github Username ');
+  githubPassword = readlineSync.question('Github Password ', {
+    hideEchoBack: true // The typed text on screen is hidden by `*` (default).
+  });
+  printTrelloEvents();
+  console.log();
+  printGithubEvents();
 }
 
 
-printTrelloEvents();
-printGithubEvents();
+getCredentials();
+
