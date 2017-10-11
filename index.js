@@ -81,7 +81,7 @@ function printGithubEvents () {
     debug: false,
     Promise: Promise,
     timeout: 5000,
-    host: 'api.github.com', // should be api.github.com for GitHub
+    host: 'api.github.com',
     protocol: "https"
   });
 
