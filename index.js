@@ -4,6 +4,10 @@ var Promise = require('bluebird');
 var githubUsername = null;
 var githubPassword = null;
 
+var prettyDate = require('./pretty_date');
+var gcal = require('./gcal/plugin');
+
+
 if (!params.trelloApiToken) {
   console.log(
     "You need to set your trelloApiToken in parameters.js ",
@@ -12,6 +16,7 @@ if (!params.trelloApiToken) {
   );
   return;
 }
+
 var Trello = require("node-trello");
 var t = new Trello(params.trelloApiKey, params.trelloApiToken);
 
