@@ -91,7 +91,7 @@ function printGithubEvents () {
     password: githubPassword
   });
   github.activity.getEventsForUser({
-    username: "mazzcris",
+    username: githubUsername,
     page: 0,
     per_page: 50
   }, function (err, res) {
