@@ -4,6 +4,10 @@ var Promise = require('bluebird');
 var githubUsername = null;
 var githubPassword = null;
 
+var prettyDate = require('./pretty_date');
+var gcal = require('./gcal/plugin');
+
+
 if (!params.trelloApiToken) {
   console.log(
     "You need to set your trelloApiToken in parameters.js ",
@@ -12,8 +16,10 @@ if (!params.trelloApiToken) {
   );
   return;
 }
+
 var Trello = require("node-trello");
 var t = new Trello(params.trelloApiKey, params.trelloApiToken);
+
 
 function printTrelloEvents () {
   t.get("/1/members/me/actions", function (err, data) {
@@ -60,13 +66,6 @@ function printCardMoved (item) {
     " to " + item.data.listAfter.name.toUpperCase());
 }
 
-function prettyDate (date) {
-  var months = ["jan", "feb", "mar", "apr", "may", "jun",
-    "jul", "aug", "sep", "oct", "nov", "dec"
-  ];
-
-  return date.substr(8, 2) + months[parseInt(date.substr(5, 2) - 1)];
-}
 
 function addEmptyLineIfNewDay (prevDate, currDate) {
   if (prevDate.substr(8, 2) != currDate.substr(8, 2)) {
@@ -75,8 +74,8 @@ function addEmptyLineIfNewDay (prevDate, currDate) {
 }
 
 
-function printGithubEvents () {
-
+function printGithubEvents () 
+{
   var github = new GitHubApi({
     debug: false,
     Promise: Promise,
@@ -119,6 +118,11 @@ function printGithubEvents () {
   });
 }
 
+function printGcalEvents()
+{
+  gcal.run(__dirname);
+}
+
 function printError(error) {
   console.error('ERROR:',error);
 }
@@ -148,6 +152,8 @@ function getCredentials () {
   printTrelloEvents();
   console.log();
   printGithubEvents();
+  console.log();
+  printGcalEvents();
 }
 
 

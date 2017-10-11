@@ -58,3 +58,5 @@ typings/
 .env
 
 parameters.js
+.credentials
+config/*.json
