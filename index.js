@@ -1,5 +1,6 @@
 var params = require('./parameters');
 var Github = require("./github");
+var Trello = require("./trello");
 
 if (!params.trelloApiToken) {
   console.log(
@@ -9,29 +10,7 @@ if (!params.trelloApiToken) {
   );
   return;
 }
-var Trello = require("node-trello");
-var t = new Trello(params.trelloApiKey, params.trelloApiToken);
 
-function getTrelloItems (cb) {
-  var trelloEvents = [];
-
-  t.get("/1/members/me/actions", function (err, data) {
-    if (err) console.log(err);
-    for (var i = 0; i < data.length; i++) {
-      var item = data[i];
-      if (item.data.listAfter !== undefined) {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'cardMoved', event: item});
-      }
-      if (item.type == "addMemberToCard") {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'memberAdded', event: item});
-      }
-      if (item.type == "removeMemberFromCard") {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'memberRemoved', event: item});
-      }
-    }
-    cb(trelloEvents);
-  });
-}
 
 function prettyDate (date) {
   var months = ["January", "February", "March", "April", "May", "Jun",
@@ -77,7 +56,7 @@ function printCardMoved (item) {
 
 function init () {
   var globalItems = [];
-  getTrelloItems(function (trelloItems) {
+  Trello.getItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
 
     Github.getItems(function (githubItems) {
