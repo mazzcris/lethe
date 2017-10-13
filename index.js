@@ -1,6 +1,6 @@
 var params = require('./parameters');
-var GitHubApi = require("github");
-var Promise = require('bluebird');
+var Github = require("./github");
+var Trello = require("./trello");
 
 if (!params.trelloApiToken) {
   console.log(
@@ -10,29 +10,7 @@ if (!params.trelloApiToken) {
   );
   return;
 }
-var Trello = require("node-trello");
-var t = new Trello(params.trelloApiKey, params.trelloApiToken);
 
-function getTrelloItems (cb) {
-  var trelloEvents = [];
-
-  t.get("/1/members/me/actions", function (err, data) {
-    if (err) console.log(err);
-    for (var i = 0; i < data.length; i++) {
-      var item = data[i];
-      if (item.data.listAfter !== undefined) {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'cardMoved', event: item});
-      }
-      if (item.type == "addMemberToCard") {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'memberAdded', event: item});
-      }
-      if (item.type == "removeMemberFromCard") {
-        trelloEvents.push({source: 'trello', date: item.date, type: 'memberRemoved', event: item});
-      }
-    }
-    cb(trelloEvents);
-  });
-}
 
 function prettyDate (date) {
   var months = ["January", "February", "March", "April", "May", "Jun",
@@ -40,125 +18,6 @@ function prettyDate (date) {
   ];
 
   return months[parseInt(date.substr(5, 2) - 1)].toUpperCase() + " " + date.substr(8, 2);
-}
-
-function getDateWithoutTime (dateTimeStr) {
-  var dateTime = new Date(dateTimeStr)
-  var year = dateTime.getFullYear() + "";
-  var month = (dateTime.getMonth() + 1) + "";
-  var day = dateTime.getDate();
-  if (day < 10) {
-    day = "0" + day
-  } else {
-    day = day + ""
-  }
-  return year + "-" + month + "-" + day;
-}
-
-
-
-function getGithubItems (cb) {
-
-  var github = new GitHubApi({
-    debug: false,
-    Promise: Promise,
-    timeout: 5000,
-    host: 'api.github.com',
-    protocol: "https"
-  });
-
-  var pushEvents = {}
-  var allEvents = []
-
-  // oauth
-  github.authenticate({
-    type: "oauth",
-    token: params.githubToken
-  });
-  github.activity.getEventsForUser({
-    username: params.githubUsername,
-    page: 0,
-    per_page: 50
-  }, function (err, res) {
-
-    if (err) {
-
-      if (err.code == 401) {
-        printError('Wrong username or password for github account');
-        return;
-      }
-
-      printError(error.message);
-      return;
-    }
-
-    for (var i = 0; i < res.data.length; i++) {
-      var item = res.data[i];
-      switch (item.type) {
-        case "PushEvent": {
-          aggregatePushEvent(item);
-          break;
-        }
-        case "PullRequestEvent": {
-          aggregatePullEvent(item)
-          break;
-        }
-        default: //console.warn('Unimplemented event type: ' + item.type)
-      }
-    }
-
-    var groupedPushEvents = Object.keys(pushEvents)
-    groupedPushEvents.forEach(function (eventKey) {
-      allEvents.push(pushEvents[eventKey])
-    })
-
-    allEvents.sort(function (eventA, eventB) {
-      return eventB.event.id - eventA.event.id
-    })
-
-    var githubEvents = [];
-    allEvents.forEach(function (item) {
-
-      switch (item.event.type) {
-        case "PushEvent": {
-          githubEvents.push({source: 'github', date: item.event.created_at, type: 'pushEvent', event: item});
-          break;
-        }
-        case "PullRequestEvent": {
-          githubEvents.push({source: 'github', date: item.event.created_at, type: 'pullRequest', event: item});
-          break;
-        }
-      }
-    });
-    cb(githubEvents);
-  });
-
-  function aggregatePullEvent (event) {
-    allEvents.push({event: event})
-  }
-
-  function aggregatePushEvent (event) {
-    var eventCreatedAt = getDateWithoutTime(event.created_at);
-    var eventRepoId = event.repo.id;
-    var eventActorId = event.actor.id;
-    var eventRef = event.payload.ref.toUpperCase();
-
-    var eventKey = eventCreatedAt + '::' + eventRepoId + '::' + eventActorId + '::' + eventRef;
-
-    var payloadSize = event.payload.size;
-
-    var previousEvent = pushEvents[eventKey]
-
-    if (previousEvent) {
-      payloadSize = payloadSize + previousEvent.count
-    }
-
-    pushEvents[eventKey] = {event: event, count: payloadSize}
-  }
-}
-
-function printError (error) {
-  console.error('ERROR:', error);
 }
 
 function printPushEvent (groupedEvent) {
@@ -197,10 +56,10 @@ function printCardMoved (item) {
 
 function init () {
   var globalItems = [];
-  getTrelloItems(function (trelloItems) {
+  Trello.getItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
 
-    getGithubItems(function (githubItems) {
+    Github.getItems(function (githubItems) {
       globalItems = globalItems.concat(githubItems)
       printAllItems(globalItems);
     });
