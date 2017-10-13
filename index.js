@@ -1,6 +1,5 @@
 var params = require('./parameters');
-var GitHubApi = require("github");
-var Promise = require('bluebird');
+var Github = require("./github");
 
 if (!params.trelloApiToken) {
   console.log(
@@ -42,125 +41,6 @@ function prettyDate (date) {
   return months[parseInt(date.substr(5, 2) - 1)].toUpperCase() + " " + date.substr(8, 2);
 }
 
-function getDateWithoutTime (dateTimeStr) {
-  var dateTime = new Date(dateTimeStr)
-  var year = dateTime.getFullYear() + "";
-  var month = (dateTime.getMonth() + 1) + "";
-  var day = dateTime.getDate();
-  if (day < 10) {
-    day = "0" + day
-  } else {
-    day = day + ""
-  }
-  return year + "-" + month + "-" + day;
-}
-
-
-
-function getGithubItems (cb) {
-
-  var github = new GitHubApi({
-    debug: false,
-    Promise: Promise,
-    timeout: 5000,
-    host: 'api.github.com',
-    protocol: "https"
-  });
-
-  var pushEvents = {}
-  var allEvents = []
-
-  // oauth
-  github.authenticate({
-    type: "oauth",
-    token: params.githubToken
-  });
-  github.activity.getEventsForUser({
-    username: params.githubUsername,
-    page: 0,
-    per_page: 50
-  }, function (err, res) {
-
-    if (err) {
-
-      if (err.code == 401) {
-        printError('Wrong username or password for github account');
-        return;
-      }
-
-      printError(error.message);
-      return;
-    }
-
-    for (var i = 0; i < res.data.length; i++) {
-      var item = res.data[i];
-      switch (item.type) {
-        case "PushEvent": {
-          aggregatePushEvent(item);
-          break;
-        }
-        case "PullRequestEvent": {
-          aggregatePullEvent(item)
-          break;
-        }
-        default: //console.warn('Unimplemented event type: ' + item.type)
-      }
-    }
-
-    var groupedPushEvents = Object.keys(pushEvents)
-    groupedPushEvents.forEach(function (eventKey) {
-      allEvents.push(pushEvents[eventKey])
-    })
-
-    allEvents.sort(function (eventA, eventB) {
-      return eventB.event.id - eventA.event.id
-    })
-
-    var githubEvents = [];
-    allEvents.forEach(function (item) {
-
-      switch (item.event.type) {
-        case "PushEvent": {
-          githubEvents.push({source: 'github', date: item.event.created_at, type: 'pushEvent', event: item});
-          break;
-        }
-        case "PullRequestEvent": {
-          githubEvents.push({source: 'github', date: item.event.created_at, type: 'pullRequest', event: item});
-          break;
-        }
-      }
-    });
-    cb(githubEvents);
-  });
-
-  function aggregatePullEvent (event) {
-    allEvents.push({event: event})
-  }
-
-  function aggregatePushEvent (event) {
-    var eventCreatedAt = getDateWithoutTime(event.created_at);
-    var eventRepoId = event.repo.id;
-    var eventActorId = event.actor.id;
-    var eventRef = event.payload.ref.toUpperCase();
-
-    var eventKey = eventCreatedAt + '::' + eventRepoId + '::' + eventActorId + '::' + eventRef;
-
-    var payloadSize = event.payload.size;
-
-    var previousEvent = pushEvents[eventKey]
-
-    if (previousEvent) {
-      payloadSize = payloadSize + previousEvent.count
-    }
-
-    pushEvents[eventKey] = {event: event, count: payloadSize}
-  }
-}
-
-function printError (error) {
-  console.error('ERROR:', error);
-}
-
 function printPushEvent (groupedEvent) {
   var item = groupedEvent;
   console.log("\x1b[39m", "|", "\x1b[33m","In " + item.event.event.repo.name.toUpperCase() +
@@ -200,7 +80,7 @@ function init () {
   getTrelloItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
 
-    getGithubItems(function (githubItems) {
+    Github.getItems(function (githubItems) {
       globalItems = globalItems.concat(githubItems)
       printAllItems(globalItems);
     });
