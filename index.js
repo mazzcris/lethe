@@ -1,8 +1,6 @@
 var params = require('./parameters');
 var GitHubApi = require("github");
 var Promise = require('bluebird');
-var githubUsername = null;
-var githubPassword = null;
 
 if (!params.trelloApiToken) {
   console.log(
@@ -72,13 +70,13 @@ function getGithubItems (cb) {
   var pushEvents = {}
   var allEvents = []
 
+  // oauth
   github.authenticate({
-    type: "basic",
-    username: githubUsername,
-    password: githubPassword
+    type: "oauth",
+    token: params.githubToken
   });
   github.activity.getEventsForUser({
-    username: githubUsername,
+    username: params.githubUsername,
     page: 0,
     per_page: 50
   }, function (err, res) {
@@ -197,15 +195,7 @@ function printCardMoved (item) {
     " to " + item.data.listAfter.name.toUpperCase());
 }
 
-function getCredentials () {
-
-  var readlineSync = require('readline-sync');
-
-  githubUsername = readlineSync.question('Github Username: ');
-  githubPassword = readlineSync.question('Github Password: ', {
-    hideEchoBack: true
-  });
-
+function init () {
   var globalItems = [];
   getTrelloItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
@@ -214,7 +204,6 @@ function getCredentials () {
       globalItems = globalItems.concat(githubItems)
       printAllItems(globalItems);
     });
-
   });
 }
 
@@ -271,4 +260,4 @@ function printAllItems (items) {
   });
 }
 
-getCredentials();
+init();
