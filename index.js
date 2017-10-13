@@ -1,5 +1,6 @@
 var params = require('./parameters');
 var Github = require("./github");
+var Trello = require("./trello");
 
 var prettyDate = require('./pretty_date');
 var gcal = require('./gcal/plugin');
@@ -14,6 +15,7 @@ if (!params.trelloApiToken) {
   return;
 }
 
+<<<<<<< 3278b8f505b45e8420d22762161d3bd26316b7a4
 var Trello = require("node-trello");
 var t = new Trello(params.trelloApiKey, params.trelloApiToken);
 
@@ -37,6 +39,8 @@ function getTrelloItems (cb) {
     cb(trelloEvents);
   });
 }
+=======
+>>>>>>> Move trello-related functions to separate file
 
 function prettyDate (date) {
   var months = ["January", "February", "March", "April", "May", "Jun",
@@ -82,7 +86,7 @@ function printCardMoved (item) {
 
 function init () {
   var globalItems = [];
-  getTrelloItems(function (trelloItems) {
+  Trello.getItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
 
     Github.getItems(function (githubItems) {
