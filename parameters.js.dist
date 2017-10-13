@@ -1,4 +1,9 @@
 var trelloApiKey = "";
 var trelloApiToken = "";
+var gitHubToken = "";
+var githubUsername = "";
+
 exports.trelloApiKey = trelloApiKey;
 exports.trelloApiToken = trelloApiToken;
+exports.gitHubToken = gitHubToken;
+exports.githubUsername = githubUsername;
