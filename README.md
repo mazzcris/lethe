@@ -1,6 +1,6 @@
 # Lethe
 
-A cli js script to list your recent activity on Trello and GitHub
+A cli js script to list your recent activity on Trello, GitHub and Google Calendar
 
 
 # Configure Google Calendar
