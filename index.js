@@ -1,8 +1,6 @@
 var params = require('./parameters');
-var GitHubApi = require("github");
-var Promise = require('bluebird');
-var githubUsername = null;
-var githubPassword = null;
+var Github = require("./github");
+var Trello = require("./trello");
 
 var prettyDate = require('./pretty_date');
 var gcal = require('./gcal/plugin');
@@ -17,106 +15,66 @@ if (!params.trelloApiToken) {
   return;
 }
 
-var Trello = require("node-trello");
-var t = new Trello(params.trelloApiKey, params.trelloApiToken);
+function prettyDate (date) {
+  var months = ["January", "February", "March", "April", "May", "Jun",
+    "July", "August", "September", "October", "November", "December"
+  ];
 
+  return months[parseInt(date.substr(5, 2) - 1)].toUpperCase() + " " + date.substr(8, 2);
+}
 
-function printTrelloEvents () {
-  t.get("/1/members/me/actions", function (err, data) {
-    if (err) console.log(err);
-    var prevDate = "0000-00-00";
-    for (var i = 0; i < data.length; i++) {
-      var item = data[i];
-      var currDate = item.date;
-      if (item.data.listAfter !== undefined) {
-        printCardMoved(item, prevDate, currDate);
-        addEmptyLineIfNewDay(prevDate, currDate);
-        prevDate = currDate;
-      }
-      if (item.type == "addMemberToCard") {
-        printMemberAdded(item, prevDate, currDate);
-        addEmptyLineIfNewDay(prevDate, currDate);
-        prevDate = currDate;
-      }
-      if (item.type == "removeMemberFromCard") {
-        printMemberRemoved(item, prevDate, currDate);
-        addEmptyLineIfNewDay(prevDate, currDate);
-        prevDate = currDate;
-      }
-    }
-  });
+function printPushEvent (groupedEvent) {
+  var item = groupedEvent;
+  console.log("\x1b[39m", "|", "\x1b[33m","In " + item.event.event.repo.name.toUpperCase() +
+    ", " + item.event.event.actor.display_login.toUpperCase() +
+    " pushed " + groupedEvent.event.count + " commits to " + item.event.event.payload.ref.toUpperCase());
+}
+
+function printPullRequestEvent (item) {
+  if (item.event.payload.action == "closed" && item.event.payload.pull_request.merged == true) {
+    console.log("\x1b[39m", "|", "\x1b[33m","In " + item.event.repo.name.toUpperCase() +
+      ", " + item.event.actor.display_login.toUpperCase() +
+      " merged pull-request  " + item.event.payload.pull_request.title.toUpperCase());
+  }
 }
 
 function printMemberAdded (item) {
-  console.log(prettyDate(item.date) + ": In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[34m","In " + item.data.board.name.toUpperCase() +
     ", " + item.member.username.toUpperCase() +
     " joined the card " + item.data.card.name.toUpperCase());
 }
 
 function printMemberRemoved (item) {
-  console.log(prettyDate(item.date) + ": In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[34m","In " + item.data.board.name.toUpperCase() +
     ", " + item.member.username.toUpperCase() +
     " left the card " + item.data.card.name.toUpperCase());
 }
 
 function printCardMoved (item) {
-  console.log(prettyDate(item.date) + ": In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[34m","In " + item.data.board.name.toUpperCase() +
     " you moved the card " + item.data.card.name.toUpperCase() +
     " from " + item.data.listBefore.name.toUpperCase() +
     " to " + item.data.listAfter.name.toUpperCase());
 }
 
+=======
+function init () {
+  var globalItems = [];
+  Trello.getItems(function (trelloItems) {
+    globalItems = globalItems.concat(trelloItems);
 
-function addEmptyLineIfNewDay (prevDate, currDate) {
-  if (prevDate.substr(8, 2) != currDate.substr(8, 2)) {
-    console.log();
-  }
-}
-
-
-function printGithubEvents () 
-{
-  var github = new GitHubApi({
-    debug: false,
-    Promise: Promise,
-    timeout: 5000,
-    host: 'api.github.com',
-    protocol: "https"
-  });
-
-  github.authenticate({
-    type: "basic",
-    username: githubUsername,
-    password: githubPassword
-  });
-  github.activity.getEventsForUser({
-    username: githubUsername,
-    page: 0,
-    per_page: 50
-  }, function (err, res) {
-
-    if (err) {
-
-      if (err.code == 401) {
-        printError('Wrong username or password for github account');
-        return;
-      } 
-
-      printError(error.message);
-      return;
-    }
-
-    for (var i = 0; i < res.data.length; i++) {
-      var item = res.data[i];
-      if (item.type == "PushEvent") {
-        printPushEvent(item);
-      }
-      if (item.type == "PullRequestEvent") {
-        printPullRequestEvent(item);
-      }
-    }
+    Github.getItems(function (githubItems) {
+      globalItems = globalItems.concat(githubItems)
+      printAllItems(globalItems);
+    });
   });
 }
+
+function cleanDate (d) {
+  return d.substr(0, 4) + d.substr(5, 2) + d.substr(8, 2);
+}
+
+function printAllItems (items) {
 
 function printGcalEvents()
 {
@@ -159,3 +117,4 @@ function getCredentials () {
 
 getCredentials();
 
+init();
