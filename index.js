@@ -2,6 +2,10 @@ var params = require('./parameters');
 var Github = require("./github");
 var Trello = require("./trello");
 
+var prettyDate = require('./pretty_date');
+var gcal = require('./gcal/plugin');
+
+
 if (!params.trelloApiToken) {
   console.log(
     "You need to set your trelloApiToken in parameters.js ",
@@ -10,7 +14,6 @@ if (!params.trelloApiToken) {
   );
   return;
 }
-
 
 function prettyDate (date) {
   var months = ["January", "February", "March", "April", "May", "Jun",
@@ -54,6 +57,7 @@ function printCardMoved (item) {
     " to " + item.data.listAfter.name.toUpperCase());
 }
 
+=======
 function init () {
   var globalItems = [];
   Trello.getItems(function (trelloItems) {
@@ -72,51 +76,45 @@ function cleanDate (d) {
 
 function printAllItems (items) {
 
-  items.sort(function (itemA, itemB) {
-    if (cleanDate(itemA.date) > cleanDate(itemB.date)) {
-      return -1
-    }
-    return 1
-  })
-
-  var prevDay;
-  items.forEach(function (item) {
-    if (prevDay !== item.date.substr(0, 10)) {
-      console.log();
-      console.log("\x1b[39m", "## " + prettyDate(item.date) + " ##");
-      prevDay = item.date.substr(0, 10);
-    }
-    if (item.source === "trello") {
-      switch (item.type) {
-        case "cardMoved": {
-          printCardMoved(item.event)
-          break;
-        }
-        case "memberAdded": {
-          printMemberAdded(item.event)
-          break;
-        }
-        case "memberRemoved": {
-          printMemberRemoved(item.event)
-          break;
-        }
-        default: //console.warn('Unimplemented event type: ' + item.type)
-      }
-    }
-    if (item.source === "github") {
-      switch (item.type) {
-        case "pushEvent": {
-          printPushEvent(item)
-          break;
-        }
-        case "pullRequest": {
-          printPullRequestEvent(item.event)
-          break;
-        }
-        default: //console.warn('Unimplemented event type: ' + item.type)
-      }
-    }
-  });
+function printGcalEvents()
+{
+  gcal.run(__dirname);
 }
+
+function printError(error) {
+  console.error('ERROR:',error);
+}
+
+function printPushEvent (item) {
+  console.log(prettyDate(item.created_at) + ": In " + item.repo.name.toUpperCase() +
+    ", " + item.actor.display_login.toUpperCase() +
+    " pushed " + item.payload.size + " commits to " + item.payload.ref.toUpperCase());
+}
+
+function printPullRequestEvent (item) {
+  if (item.payload.action == "closed" && item.payload.pull_request.merged == true) {
+    console.log(prettyDate(item.payload.pull_request.merged_at) + ": In " + item.repo.name.toUpperCase() +
+      ", " + item.actor.display_login.toUpperCase() +
+      " merged pull-request  " + item.payload.pull_request.title.toUpperCase());
+  }
+}
+
+function getCredentials () {
+
+  var readlineSync = require('readline-sync');
+
+  githubUsername = readlineSync.question('Github Username: ');
+  githubPassword = readlineSync.question('Github Password: ', {
+    hideEchoBack: true
+  });
+  printTrelloEvents();
+  console.log();
+  printGithubEvents();
+  console.log();
+  printGcalEvents();
+}
+
+
+getCredentials();
 
 init();
