@@ -105,14 +105,15 @@ function storeToken(token) {
 }
 
 /**
- * Lists the next 10 events on the user's primary calendar.
+ * Lists events for the past 10 days
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
 function listLastTwoWeeksEvents(auth) {
   var calendar = google.calendar('v3');
   var firstEventDate = new Date();
-  firstEventDate.setDate(firstEventDate.getDate() - 15);
+  firstEventDate.setDate(firstEventDate.getDate() - 10);
+  console.log(firstEventDate);
   calendar.events.list({
     auth: auth,
     calendarId: 'primary',
@@ -128,7 +129,7 @@ function listLastTwoWeeksEvents(auth) {
     }
     var events = response.items;
     if (events.length == 0) {
-      console.log('No upcoming events found in Google Calendar.');
+      console.log('No events found in Google Calendar for the past 10 days.');
     } else {
       for (var i = 0; i < events.length; i++) {
         var event = events[i];

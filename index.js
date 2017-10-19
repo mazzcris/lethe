@@ -31,19 +31,19 @@ function printPullRequestEvent (item) {
 }
 
 function printMemberAdded (item) {
-  console.log("\x1b[39m", "|", "\x1b[34m", "In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[36m", "In " + item.data.board.name.toUpperCase() +
     ", " + item.member.username.toUpperCase() +
     " joined the card " + item.data.card.name.toUpperCase());
 }
 
 function printMemberRemoved (item) {
-  console.log("\x1b[39m", "|", "\x1b[34m", "In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[36m", "In " + item.data.board.name.toUpperCase() +
     ", " + item.member.username.toUpperCase() +
     " left the card " + item.data.card.name.toUpperCase());
 }
 
 function printCardMoved (item) {
-  console.log("\x1b[39m", "|", "\x1b[34m", "In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[36m", "In " + item.data.board.name.toUpperCase() +
     " you moved the card " + item.data.card.name.toUpperCase() +
     " from " + item.data.listBefore.name.toUpperCase() +
     " to " + item.data.listAfter.name.toUpperCase());
