@@ -1,10 +1,10 @@
 var params = require('./parameters');
 var Github = require("./github");
 var Trello = require("./trello");
+
 var GoogleCalendar = require('./gcal/plugin');
 
 var prettyDate = require('./pretty_date');
-
 
 
 if (!params.trelloApiToken) {
@@ -19,33 +19,33 @@ if (!params.trelloApiToken) {
 
 function printPushEvent (groupedEvent) {
   var item = groupedEvent;
-  console.log("\x1b[39m", "|", "\x1b[33m","In " + item.event.event.repo.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[33m", "In " + item.event.event.repo.name.toUpperCase() +
     ", " + item.event.event.actor.display_login.toUpperCase() +
     " pushed " + groupedEvent.event.count + " commits to " + item.event.event.payload.ref.toUpperCase());
 }
 
 function printPullRequestEvent (item) {
   if (item.event.payload.action == "closed" && item.event.payload.pull_request.merged == true) {
-    console.log("\x1b[39m", "|", "\x1b[33m","In " + item.event.repo.name.toUpperCase() +
+    console.log("\x1b[39m", "|", "\x1b[33m", "In " + item.event.repo.name.toUpperCase() +
       ", " + item.event.actor.display_login.toUpperCase() +
       " merged pull-request  " + item.event.payload.pull_request.title.toUpperCase());
   }
 }
 
 function printMemberAdded (item) {
-  console.log("\x1b[39m", "|", "\x1b[34m","In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[34m", "In " + item.data.board.name.toUpperCase() +
     ", " + item.member.username.toUpperCase() +
     " joined the card " + item.data.card.name.toUpperCase());
 }
 
 function printMemberRemoved (item) {
-  console.log("\x1b[39m", "|", "\x1b[34m","In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[34m", "In " + item.data.board.name.toUpperCase() +
     ", " + item.member.username.toUpperCase() +
     " left the card " + item.data.card.name.toUpperCase());
 }
 
 function printCardMoved (item) {
-  console.log("\x1b[39m", "|", "\x1b[34m","In " + item.data.board.name.toUpperCase() +
+  console.log("\x1b[39m", "|", "\x1b[34m", "In " + item.data.board.name.toUpperCase() +
     " you moved the card " + item.data.card.name.toUpperCase() +
     " from " + item.data.listBefore.name.toUpperCase() +
     " to " + item.data.listAfter.name.toUpperCase());

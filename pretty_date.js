@@ -1,9 +1,10 @@
-function prettyDate (date) {
-    var months = ["jan", "feb", "mar", "apr", "may", "jun",
-      "jul", "aug", "sep", "oct", "nov", "dec"
-    ];
-  
-    return date.substr(8, 2) + months[parseInt(date.substr(5, 2) - 1)];
+function prettyDate (date) 
+{
+  var months = ["January", "February", "March", "April", "May", "Jun",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  return months[parseInt(date.substr(5, 2) - 1)].toUpperCase() + " " + date.substr(8, 2);
 }
 
 module.exports = prettyDate
