@@ -18,7 +18,7 @@ Github = {
     // oauth
     github.authenticate({
       type: "oauth",
-      token: params.githubToken
+      token: params.gitHubToken
     });
     github.activity.getEventsForUser({
       username: params.githubUsername,
