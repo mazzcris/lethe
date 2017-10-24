@@ -2,8 +2,9 @@ var params = require('./parameters');
 var Github = require("./github");
 var Trello = require("./trello");
 
+var GoogleCalendar = require('./gcal/plugin');
+
 var prettyDate = require('./pretty_date');
-var gcal = require('./gcal/plugin');
 
 
 if (!params.trelloApiToken) {
@@ -14,6 +15,7 @@ if (!params.trelloApiToken) {
   );
   return;
 }
+
 
 function printPushEvent (groupedEvent) {
   var item = groupedEvent;
@@ -49,19 +51,39 @@ function printCardMoved (item) {
     " to " + item.data.listAfter.name.toUpperCase());
 }
 
-function printGcalEvents () {
-  gcal.run(__dirname);
+function printGoogleCalendarEvent(item)
+{
+  var start = item.start.dateTime;
+  var end = item.end.dateTime;
+  
+  var output = "\x1b[39m | \x1b[32m In GOOGLE CALENDAR, " + item.summary.toUpperCase();
+  if (item.start.dateTime) {
+    output += " from " + item.start.dateTime.substr(11,5)
+  }
+  if (item.end.dateTime) {
+    output += " to " + item.end.dateTime.substr(11,5)
+  }
+  if (item.organizer) {
+    output += " with " + item.organizer.displayName + ' (' + item.organizer.email +  ')'
+  }
+  
+  console.log(output);
 }
 
 function init () {
   var globalItems = [];
+
   Trello.getItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
 
     Github.getItems(function (githubItems) {
       globalItems = globalItems.concat(githubItems)
-      printAllItems(globalItems);
-      printGcalEvents();
+
+      GoogleCalendar.getItems(function (calendarItems) {
+        globalItems = globalItems.concat(calendarItems)
+
+        printAllItems(globalItems);
+      });
     });
   });
 }
@@ -71,7 +93,6 @@ function cleanDate (d) {
 }
 
 function printAllItems (items) {
-
   items.sort(function (itemA, itemB) {
     if (cleanDate(itemA.date) > cleanDate(itemB.date)) {
       return -1
@@ -115,6 +136,9 @@ function printAllItems (items) {
         }
         default: //console.warn('Unimplemented event type: ' + item.type)
       }
+    }
+    if (item.source === "gcalendar") {
+      printGoogleCalendarEvent(item.event)
     }
   });
 }
