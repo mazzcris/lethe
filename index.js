@@ -1,8 +1,8 @@
 var params = require('./parameters');
-var Github = require("./github");
+// var Github = require("./github");
 var Trello = require("./trello");
 
-var GoogleCalendar = require('./gcal/plugin');
+// var GoogleCalendar = require('./gcal/plugin');
 
 var prettyDate = require('./pretty_date');
 
@@ -75,16 +75,15 @@ function init () {
 
   Trello.getItems(function (trelloItems) {
     globalItems = globalItems.concat(trelloItems);
+    // Github.getItems(function (githubItems) {
+    //   globalItems = globalItems.concat(githubItems)
 
-    Github.getItems(function (githubItems) {
-      globalItems = globalItems.concat(githubItems)
-
-      GoogleCalendar.getItems(function (calendarItems) {
-        globalItems = globalItems.concat(calendarItems)
+      // GoogleCalendar.getItems(function (calendarItems) {
+      //   globalItems = globalItems.concat(calendarItems)
 
         printAllItems(globalItems);
-      });
-    });
+      // });
+    // });
   });
 }
 
