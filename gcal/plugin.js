@@ -43,7 +43,7 @@ GoogleCalendar = {
     var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
 
     if (!params.googleCalendarToken) {
-      getNewToken(oauth2Client, callback);
+      this.getNewToken(oauth2Client, callback);
     } else {
       oauth2Client.credentials = params.googleCalendarToken;
       callback(oauth2Client);
@@ -59,9 +59,10 @@ GoogleCalendar = {
    *     client.
    */
   getNewToken: function(oauth2Client, callback) {
+    let that = this;
     var authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: SCOPES
+      scope: this.SCOPES
     });
     console.log('Authorize this app by visiting this url: ', authUrl);
     var rl = readline.createInterface({
@@ -76,7 +77,7 @@ GoogleCalendar = {
           return;
         }
         oauth2Client.credentials = token;
-        storeToken(token);
+        that.storeToken(token);
         callback(oauth2Client);
       });
     });
