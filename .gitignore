@@ -60,3 +60,5 @@ typings/
 parameters.js
 .credentials
 config/*.json
+
+build
