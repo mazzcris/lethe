@@ -14,7 +14,7 @@ describe("App", () => {
 })
 
 const props = {
-    buttons: [
+    services: [
         {'name': 'GitHub'},
         {'name': 'Trello'},
         {'name': 'Google Calendar'},

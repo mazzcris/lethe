@@ -3,9 +3,12 @@ import ServiceButton from "./ServiceButton";
 import {ButtonToolbar} from 'react-bootstrap'
 
 class Page extends React.Component {
+
+
+
     render () {
-        let buttons = this.props.buttons.map((button, index) =>
-            <ServiceButton key={index} data={button} />
+        let buttons = this.props.services.map((service, index) =>
+            <ServiceButton key={index} service={service} handleConnect={service.handleConnect}  />
         );
         return <div>
             <ButtonToolbar className={"button-toolbar"}>
