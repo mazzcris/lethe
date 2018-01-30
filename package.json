@@ -15,7 +15,8 @@
   },
   "scripts": {
     "start": "node index.js",
-    "devserver": "webpack-dev-server --progress --inline --hot --port 4000"
+    "devserver": "webpack-dev-server --progress --inline --hot --port 4000",
+    "test": "jest"
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -24,6 +25,8 @@
     "babel-loader": "^7.1.2",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "style-loader": "^0.19.1",
     "webpack": "^3.9.1",
     "webpack-dev-server": "^2.9.5"

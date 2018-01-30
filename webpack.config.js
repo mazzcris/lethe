@@ -1,10 +1,12 @@
-const path = require('path')
 module.exports = {
     entry: "./app.js",
     output: {
         path:  __dirname + '/build',
         filename: "bundle.js",
         publicPath:  "/build/"
+    },
+    resolve:{
+        extensions: [".webpack.js", ".web.js", ".js", ".json", ".jsx"]
     },
     module: {
         loaders: [{
