@@ -95,13 +95,25 @@ GoogleCalendar = {
     });
   },
 
+  removeTokenFromParams: function() {
+      var fileName = 'parameters.js'
+      var strToRemove =  'googleCalendarToken'
+
+      fs.readFile(fileName, 'utf8', function(err, data){
+          let splitArray = data.split('\n');
+          splitArray.splice(splitArray.indexOf(strToRemove), 1);
+          let result = splitArray.join('\n');
+          fs.writeFile(fileName, result)
+      })
+  },
+
   /**
    * Lists the next 10 events on the user's primary calendar.
    *
    * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
    */
   listLastTwoWeeksEvents: function(auth, cb) {
-
+    var plugin = this;
     var calendar = google.calendar('v3');
     var firstEventDate = new Date();
     firstEventDate.setDate(firstEventDate.getDate() - 15);
@@ -115,6 +127,7 @@ GoogleCalendar = {
       orderBy: 'startTime'
     }, function(err, response) {
       if (err) {
+        plugin.removeTokenFromParams()
         console.log('The API returned an error: ' + err);
         return;
       }
