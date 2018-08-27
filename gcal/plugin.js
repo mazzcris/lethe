@@ -89,7 +89,7 @@ GoogleCalendar = {
    * @param {Object} token The token to store to disk.
    */
   storeToken: function(token) {
-    fs.appendFile('../parameters.js', 'exports.googleCalendarToken = '+JSON.stringify(token), function (err) {
+    fs.appendFile('parameters.js', '\nexports.googleCalendarToken = '+JSON.stringify(token), function (err) {
       if (err) throw err;
       console.log('Token stored to parameters.js file!');
     });
