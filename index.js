@@ -1,11 +1,10 @@
-var params = require('./parameters');
-var Github = require("./github");
-var Trello = require("./trello");
+var params = require('./parameters.js');
+var Github = require("./github.js");
+var Trello = require("./trello.js");
 
 var GoogleCalendar = require('./gcal/plugin');
 
 var prettyDate = require('./pretty_date');
-
 
 if (!params.trelloApiToken) {
   console.log(

@@ -14,7 +14,8 @@
     "readline-sync": "^1.4.7"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "webpack-dev-server --host lethe.local --https --progress --inline --hot --port 4000",
+    "cli": "node index.js",
     "devserver": "webpack-dev-server --progress --inline --hot --port 4000",
     "test": "jest"
   },
