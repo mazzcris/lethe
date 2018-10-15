@@ -2,8 +2,10 @@ var trelloApiKey = "";
 var trelloApiToken = "";
 var gitHubToken = "";
 var githubUsername = "";
+let googleCalendarToken = {}
 
 exports.trelloApiKey = trelloApiKey;
 exports.trelloApiToken = trelloApiToken;
 exports.gitHubToken = gitHubToken;
 exports.githubUsername = githubUsername;
+exports.googleCalendarToken = googleCalendarToken
